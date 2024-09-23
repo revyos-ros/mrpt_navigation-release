@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>mrpt_msgs_bridge</name>
-  <version>2.0.1</version>
+  <version>2.1.1</version>
   <description>C++ library to convert between custom mrpt_msgs messages and native MRPT classes</description>
 
   <url type="website">https://github.com/mrpt-ros-pkg/mrpt_navigation</url>
@@ -17,11 +17,13 @@
   <build_depend>ros_environment</build_depend>
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>mrpt2</depend>
-  
   <depend>geometry_msgs</depend>
-  <depend>mrpt_msgs</depend>
+  <depend>mrpt_libobs</depend>
+  <depend>mrpt_libros_bridge</depend>
+  <depend>rclcpp</depend>
   <depend>tf2</depend>
+
+  <depend>mrpt_msgs</depend>
 
   <!-- <depend>marker_msgs</depend> -->  <!-- Re-enable when available in all ROS 2 distros -->
 

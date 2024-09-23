@@ -19,23 +19,26 @@ Unlike classic ROS 1 ``map_server``, this node can publish a range of different 
 
 ### Working rationale
 The C++ ROS 2 node loads all parameters at start up, loads the map
-as requested by parameters, and publishes the metric map in the corresponding topics. Messages are automatically re-sent when new subscribers are detected.
+as requested by parameters, and publishes the metric map in the corresponding topics.
+Messages are sent as transient local, so new subscribers can receive them even 
+if they start afterwards.
 
 There are **three formats** in which maps can be read:
 
-1. The **preferred format** is as an [mp2p_icp](https://github.com/MOLAorg/mp2p_icp)'s metric map files (`*.mm`), normally generated
-   via [sm2mm](https://github.com/MOLAorg/mp2p_icp/tree/master/apps/sm2mm) from a [MRPT "simplemap"](https://docs.mrpt.org/reference/latest/class_mrpt_maps_CSimpleMap.html) (``*.simplemap``) that comes from a SLAM session,
-   e.g. using the forthcoming package [mola_lidar_odometry](https://github.com/MOLAorg/mola_lidar_odometry).
+1. The **preferred format** is as an [mp2p_icp](https://github.com/MOLAorg/mp2p_icp)'s metric map file (`*.mm`), normally generated
+   via [sm2mm](https://github.com/MOLAorg/mp2p_icp/tree/master/apps/sm2mm) from a [MRPT "simplemap"](https://docs.mrpt.org/reference/latest/class_mrpt_maps_CSimpleMap.html) (``*.simplemap``)
+   that comes from a SLAM session, e.g. using [mola_lidar_odometry](https://docs.mola-slam.org/latest/).
 
-2. As a [ROS standard YAML file](https://wiki.ros.org/map_server). Here, a ``*.yaml`` file specifies the metadata of a 2D occupancy gridmap, which is stored as an accompanying image file. The map will be actually encapsulated into a `metric_map_t` map with layer name `map`.
+3. As a [ROS standard YAML file](https://wiki.ros.org/map_server). Here, a ``*.yaml`` file specifies the metadata of a 2D occupancy gridmap,
+   which is stored as an accompanying image file. The map will be actually encapsulated into a `metric_map_t` map with layer name `map`.
 
-3. As a [serialized](https://docs.mrpt.org/reference/latest/group_mrpt_serialization_grp.html) MRPT metric map file.
+4. As a [serialized](https://docs.mrpt.org/reference/latest/group_mrpt_serialization_grp.html) MRPT metric map file.
 A ``*.metricmap`` file contains any of the existing 
 [MRPT metric maps](https://docs.mrpt.org/reference/latest/group_mrpt_maps_grp.html)
 (point clouds, grid maps, etc.), which may come from custom applications or other SLAM packages.
 The map will be actually encapsulated into a `metric_map_t` map with layer name `map`.
 
-So, whatever is the map source, this node will internally build a [`metric_map_t`](https://docs.mola-slam.org/mp2p_icp/)
+So, whatever is the map source, this node will internally build a [`metric_map_t`](https://docs.mola-slam.org/latest/mp2p_icp_basics.html)
 with one or more map layers, so it gets published in a uniform way to subscribers.
 
 Refer to example launch files at the end of this file for examples
@@ -54,8 +57,6 @@ of usage of each of these methods.
 * `pub_mm_topic` (Default=`mrpt_map`). Despite the map source, it will be eventually stored as a `mp2p_icp`'s `metric_map_t` (`*.mm`) structure, then each layer will be published using its **layer name** as a **topic name** and with the appropriate type
 (e.g. PointCloud2, OccupancyGrid,...). Also, the whole metric map is published as a generic serialized object to the topic defined by the 
 parameter `pub_mm_topic`.
-* `frequency` (Default=``1``) Rate in Hz at which all published topics will be checked for new subscribers and, if new ones found, publish the map messages.
-* `force_republish_period` (Default=``5``) Maximum period in seconds between re-publishing events for all map topics. Can be disabled setting it to ``0``.
 
 ### Subscribed topics
 None.
