@@ -2,6 +2,26 @@
 Changelog for package mrpt_map_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.1 (2024-09-02)
+------------------
+* Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+* update dependencies
+* Depend on new mrpt_lib packages (deprecate mrpt2)
+* Contributors: Jose Luis Blanco-Claraco
+
+* Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+* update dependencies
+* Depend on new mrpt_lib packages (deprecate mrpt2)
+* Contributors: Jose Luis Blanco-Claraco
+
+2.1.0 (2024-08-08)
+------------------
+* docs: typos and clarifications
+* map server: simplify publication policy. Using transient local only and never republishing them
+* Merge branch 'ros2' into wip/port-tps-astar
+* Merge branch 'ros2' into wip/port-tps-astar
+* Contributors: Jose Luis Blanco-Claraco
+
 2.0.1 (2024-05-28)
 ------------------
 
