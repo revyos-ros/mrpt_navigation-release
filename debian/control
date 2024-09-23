@@ -1,0 +1,13 @@
+Source: ros-humble-mrpt-pf-localization
+Section: misc
+Priority: optional
+Maintainer: Markus Bader <markus.bader@tuwien.ac.at>
+Build-Depends: debhelper (>= 9.0.0), cmake, ros-humble-ament-cmake, ros-humble-ament-lint-auto, ros-humble-ament-lint-common, ros-humble-mola-relocalization, ros-humble-mp2p-icp, ros-humble-mrpt-libgui, ros-humble-mrpt-libros-bridge, ros-humble-mrpt-libslam, ros-humble-mrpt-msgs, ros-humble-mrpt-msgs-bridge, ros-humble-mrpt-tutorials <!nocheck>, ros-humble-nav-msgs, ros-humble-pose-cov-ops, ros-humble-rclcpp, ros-humble-sensor-msgs, ros-humble-std-msgs, ros-humble-tf2, ros-humble-tf2-geometry-msgs, ros-humble-ros-workspace
+Homepage: https://github.com/mrpt-ros-pkg/mrpt_navigation
+Standards-Version: 3.9.2
+
+Package: ros-humble-mrpt-pf-localization
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-humble-ament-lint-auto, ros-humble-ament-lint-common, ros-humble-mola-relocalization, ros-humble-mp2p-icp, ros-humble-mrpt-libgui, ros-humble-mrpt-libros-bridge, ros-humble-mrpt-libslam, ros-humble-mrpt-msgs, ros-humble-mrpt-msgs-bridge, ros-humble-nav-msgs, ros-humble-pose-cov-ops, ros-humble-rclcpp, ros-humble-sensor-msgs, ros-humble-std-msgs, ros-humble-tf2, ros-humble-tf2-geometry-msgs, ros-humble-ros-workspace
+Description: Package for robot 2D self-localization using dynamic or static (MRPT or ROS) maps.
+ The interface is similar to amcl (https://wiki.ros.org/amcl) but supports different particle-filter algorithms, several grid maps at different heights, range-only localization, etc.
