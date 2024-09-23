@@ -1,0 +1,12 @@
+Source: ros-humble-mrpt-pointcloud-pipeline
+Section: misc
+Priority: optional
+Maintainer: Jose-Luis Blanco-Claraco <jlblanco@ual.es>
+Build-Depends: debhelper (>= 9.0.0), ros-humble-ament-cmake, ros-humble-ament-lint-auto, ros-humble-ament-lint-common, ros-humble-mp2p-icp, ros-humble-mrpt-libgui, ros-humble-mrpt-libmaps, ros-humble-mrpt-libobs, ros-humble-mrpt-libros-bridge, ros-humble-nav-msgs, ros-humble-rclcpp, ros-humble-rclcpp-components, ros-humble-sensor-msgs, ros-humble-tf2, ros-humble-tf2-geometry-msgs, ros-humble-ros-workspace
+Homepage: https://github.com/mrpt-ros-pkg/mrpt_navigation
+Standards-Version: 3.9.2
+
+Package: ros-humble-mrpt-pointcloud-pipeline
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-humble-ament-lint-auto, ros-humble-ament-lint-common, ros-humble-mp2p-icp, ros-humble-mrpt-libgui, ros-humble-mrpt-libmaps, ros-humble-mrpt-libobs, ros-humble-mrpt-libros-bridge, ros-humble-nav-msgs, ros-humble-rclcpp, ros-humble-rclcpp-components, ros-humble-sensor-msgs, ros-humble-tf2, ros-humble-tf2-geometry-msgs, ros-humble-ros-workspace
+Description: Maintains a local obstacle map from recent sensor readings, including optional point cloud pipeline filtering or processing.
