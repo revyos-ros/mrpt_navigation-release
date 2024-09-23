@@ -2,6 +2,16 @@
 Changelog for package mrpt_tutorials
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.1 (2024-09-02)
+------------------
+
+2.1.0 (2024-08-08)
+------------------
+* add basic astar launch demo
+* Merge branch 'ros2' into wip/port-tps-astar
+* Merge branch 'ros2' into wip/port-tps-astar
+* Contributors: Jose Luis Blanco-Claraco
+
 2.0.1 (2024-05-28)
 ------------------
 
