@@ -2,6 +2,30 @@
 Changelog for package mrpt_rawlog
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.1 (2024-09-02)
+------------------
+* Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+* update dependencies
+* Depend on new mrpt_lib packages (deprecate mrpt2)
+* rosbag2rawlog app: support generating CObservationOdometry from /tf odom->base_link msgs
+* mrpt_rawlog: delete old ROS1 leftover files
+* Contributors: Jose Luis Blanco-Claraco
+
+* Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+* update dependencies
+* Depend on new mrpt_lib packages (deprecate mrpt2)
+* rosbag2rawlog app: support generating CObservationOdometry from /tf odom->base_link msgs
+* mrpt_rawlog: delete old ROS1 leftover files
+* Contributors: Jose Luis Blanco-Claraco
+
+2.1.0 (2024-08-08)
+------------------
+* BUGFIX: Data stream ignored for sensors where fixed_sensor_pose was defined.
+* Fix GNSS name typo
+* Merge branch 'ros2' into wip/port-tps-astar
+* Merge branch 'ros2' into wip/port-tps-astar
+* Contributors: Jose Luis Blanco-Claraco
+
 2.0.1 (2024-05-28)
 ------------------
 
@@ -10,7 +34,7 @@ Changelog for package mrpt_rawlog
 * rosbag2rawlog: BUGFIX: sensor poses were inverted
 * rosbag2rawlog: drop msgs if /tf data did not arrive yet instead of aborting
 * rosbag2rawlog: now also can convert from mrpt_msgs/GenericObservation messages
-* Import GNNS observations
+* Import GNSS observations
 * Fix build with older versions of cv_bridge
 * rosbag2rawlog: Implement automatic detection of sensorPose from /tf, and added option to override poses from config yaml
 * rosbag2rawlog: Add support for XYZIRT pointcloud observations
