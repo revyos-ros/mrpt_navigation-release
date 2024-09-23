@@ -1,0 +1,63 @@
+ros-humble-mrpt-msgs-bridge (2.1.1-1jammy) jammy; urgency=high
+
+  * Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+  * Fix duplicated deps
+  * update dependencies
+  * Depend on new mrpt_lib packages (deprecate mrpt2)
+  * Contributors: Jose Luis Blanco-Claraco
+  * Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+  * Fix duplicated deps
+  * update dependencies
+  * Depend on new mrpt_lib packages (deprecate mrpt2)
+  * Contributors: Jose Luis Blanco-Claraco
+
+ -- José Luis Blanco-Claraco <joseluisblancoc@gmail.com>  Sun, 01 Sep 2024 16:00:00 -0000
+
+ros-humble-mrpt-msgs-bridge (2.1.0-1jammy) jammy; urgency=high
+
+  * Merge branch 'ros2' into wip/port-tps-astar
+  * Contributors: Jose Luis Blanco-Claraco
+
+ -- José Luis Blanco-Claraco <joseluisblancoc@gmail.com>  Wed, 07 Aug 2024 16:00:00 -0000
+
+ros-humble-mrpt-msgs-bridge (2.0.1-1jammy) jammy; urgency=high
+
+
+
+ -- José Luis Blanco-Claraco <joseluisblancoc@gmail.com>  Mon, 27 May 2024 16:00:00 -0000
+
+ros-humble-mrpt-msgs-bridge (2.0.0-1jammy) jammy; urgency=high
+
+  * Prepare demo launch files
+  * Port mrpt localization for ros2 and whole refactor
+  * Add ament linter for testing builds
+  * Make marker_msgs an optional dependency.
+    Closes #138 <https://github.com/mrpt-ros-pkg/mrpt_navigation/issues/138>
+  * Unify and clarify license headers in all files
+  * ROS2 port: mrpt_msgs_bridge
+  * Contributors: Jose Luis Blanco-Claraco, SRai22
+
+ -- José Luis Blanco-Claraco <joseluisblancoc@gmail.com>  Mon, 27 May 2024 16:00:00 -0000
+
+ros-humble-mrpt-msgs-bridge (1.0.3-1jammy) jammy; urgency=high
+
+  * Fix CMake script error due to last commit typo
+  * Contributors: Jose Luis Blanco Claraco
+
+ -- José Luis Blanco-Claraco <joseluisblancoc@gmail.com>  Fri, 24 Jun 2022 16:00:00 -0000
+
+ros-humble-mrpt-msgs-bridge (1.0.2-1jammy) jammy; urgency=high
+
+  * Fix wrong destination for mrpt_msgs_bridge headers
+  * Contributors: Jose Luis Blanco Claraco
+
+ -- José Luis Blanco-Claraco <joseluisblancoc@gmail.com>  Fri, 24 Jun 2022 16:00:00 -0000
+
+ros-humble-mrpt-msgs-bridge (1.0.1-1jammy) jammy; urgency=high
+
+  * New package mrpt_msgs_bridge
+  * Contributors: Jose Luis Blanco-Claraco
+
+ -- José Luis Blanco-Claraco <joseluisblancoc@gmail.com>  Thu, 23 Jun 2022 16:00:00 -0000
+
+
