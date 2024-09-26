@@ -39,7 +39,6 @@ target_link_libraries(
 
 ament_target_dependencies(
   rosbag2rawlog
-  #mrpt2
   rclcpp
   tf2
   nav_msgs
@@ -94,10 +93,10 @@ install(TARGETS rosbag2rawlog
   DESTINATION bin
 )
 
-install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
-)
+#install(
+#  DIRECTORY launch
+#  DESTINATION share/${PROJECT_NAME}
+#)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

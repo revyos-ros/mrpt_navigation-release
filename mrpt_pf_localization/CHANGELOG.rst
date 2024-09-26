@@ -2,6 +2,38 @@
 Changelog for package mrpt_pf_localization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.2.0 (2024-09-25)
+------------------
+* less strict unit test failure limit (fixes potential spurious failure)
+* Update URL entries in package.xml to each package proper documentation
+* ament linters: manually enable just cmake and xml linters
+* reformat clang-format with 100 column width
+* mrpt_pf_localization is now robust against temporary failures of /tf resolutions for sensor poses
+* New optional param 'metric_map_use_only_these_layers' to use only a subset of the .mm map layers
+* Contributors: Jose Luis Blanco-Claraco
+
+2.1.1 (2024-09-02)
+------------------
+* Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+* update dependencies
+* Depend on new mrpt_lib packages (deprecate mrpt2)
+* Contributors: Jose Luis Blanco-Claraco
+
+* Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+* update dependencies
+* Depend on new mrpt_lib packages (deprecate mrpt2)
+* Contributors: Jose Luis Blanco-Claraco
+
+2.1.0 (2024-08-08)
+------------------
+* Fix GNSS name typo
+* Merge branch 'ros2' into wip/port-tps-astar
+* Merge branch 'ros2' into wip/port-tps-astar
+* Contributors: Jose Luis Blanco-Claraco
+
+2.0.1 (2024-05-28)
+------------------
+
 2.0.0 (2024-05-28)
 ------------------
 * unit test executable now accepts many env var arguments for use in batch tests
@@ -13,8 +45,8 @@ Changelog for package mrpt_pf_localization
 * code clean up; check convergence in unit test
 * Do not update the PF if there are no usable observations
 * use pf/m² to initialize; estimate twist
-* Expose gnns topic in the launch file
-* GNNS-based initialization
+* Expose gnss topic in the launch file
+* GNSS-based initialization
 * Comply with ROS2 REP-2003
 * use namespaces for launch files
 * allow overriding map likelihood options
