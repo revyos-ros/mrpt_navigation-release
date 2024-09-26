@@ -2,6 +2,38 @@
 Changelog for package mrpt_reactivenav2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.2.0 (2024-09-25)
+------------------
+* Update URL entries in package.xml to each package proper documentation
+* ament linters: manually enable just cmake and xml linters
+* reformat clang-format with 100 column width
+* Contributors: Jose Luis Blanco-Claraco
+
+2.1.1 (2024-09-02)
+------------------
+* Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+* Fix duplicated deps
+* update dependencies
+* Depend on new mrpt_lib packages (deprecate mrpt2)
+* Contributors: Jose Luis Blanco-Claraco
+
+* Remove temporary workaround in <depends> for buggy mrpt_libros_bridge package.xml
+* Fix duplicated deps
+* update dependencies
+* Depend on new mrpt_lib packages (deprecate mrpt2)
+* Contributors: Jose Luis Blanco-Claraco
+
+2.1.0 (2024-08-08)
+------------------
+* Hide example output into <details>
+* Merge branch 'ros2' into wip/port-tps-astar
+* rnav node now detects live changes in the parameter 'pure_pursuit_mode'
+* Merge branch 'ros2' into wip/port-tps-astar
+* Contributors: Jose Luis Blanco-Claraco
+
+2.0.1 (2024-05-28)
+------------------
+
 2.0.0 (2024-05-28)
 ------------------
 * rnav: add new pure_pursuit mode
