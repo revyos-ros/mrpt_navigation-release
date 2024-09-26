@@ -2,13 +2,14 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>mrpt_rawlog</name>
-  <version>2.1.1</version>
+  <version>2.2.0</version>
   <description>Nodes and programs to record and play MRPT rawlogs or to transform between rosbags and rawlogs.</description>
 
   <maintainer email="markus.bader@tuwien.ac.at">Markus Bader</maintainer>
   <maintainer email="joseluisblancoc@gmail.com">Jose Luis Blanco-Claraco</maintainer>
 
   <license>BSD</license>
+  <url type="website">https://github.com/mrpt-ros-pkg/mrpt_navigation</url>
 
   <buildtool_depend>cmake</buildtool_depend>
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -25,7 +26,8 @@
   <depend>tf2_msgs</depend>
   <depend>tf2_ros</depend>
 
-  <depend>ament_lint_common</depend>
+  <depend>ament_cmake_lint_cmake</depend>
+  <depend>ament_cmake_xmllint</depend>
   <depend>ament_lint_auto</depend>
 
   <export>
