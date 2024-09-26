@@ -15,9 +15,19 @@ import os
 
 def generate_launch_description():
     tutsDir = get_package_share_directory("mrpt_tutorials")
+    # print('tutsDir       : ' + tutsDir)
 
-    arg_mm_file = DeclareLaunchArgument(
-        name='mm_file'
+    mrpt_astar_planner_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('mrpt_tps_astar_planner'), 'launch',
+            'tps_astar_planner.launch.py')]),
+        launch_arguments={
+            'topic_goal_sub': '/goal_pose',
+            'show_gui': 'False',
+            'topic_obstacles_gridmap_sub': '/mrpt_map/map_gridmap',
+            'topic_static_maps': '/mrpt_map/map_gridmap',
+            'topic_wp_seq_pub': '/waypoints',
+        }.items()
     )
 
     mrpt_map_launch = IncludeLaunchDescription(
@@ -25,8 +35,22 @@ def generate_launch_description():
             get_package_share_directory('mrpt_map_server'), 'launch',
             'mrpt_map_server.launch.py')]),
         launch_arguments={
-            'mm_file': LaunchConfiguration('mm_file'),
+            'map_yaml_file': os.path.join(tutsDir, 'maps', 'demo_world2.yaml'),
         }.items()
+    )
+
+    mvsim_node = Node(
+        package='mvsim',
+        executable='mvsim_node',
+        name='mvsim',
+        output='screen',
+        parameters=[
+            # os.path.join(tutsDir, 'params', 'mvsim_ros2_params.yaml'),
+            {
+                "world_file": os.path.join(tutsDir, 'mvsim', 'demo_world2.world.xml'),
+                "do_fake_localization": True,
+                "headless": True,
+            }]
     )
 
     rviz2_node = Node(
@@ -38,6 +62,7 @@ def generate_launch_description():
     )
     return LaunchDescription([
         mrpt_map_launch,
-        arg_mm_file,
+        mrpt_astar_planner_launch,
+        mvsim_node,
         rviz2_node
     ])
