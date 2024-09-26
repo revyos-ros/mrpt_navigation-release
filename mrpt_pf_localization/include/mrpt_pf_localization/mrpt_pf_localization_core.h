@@ -61,8 +61,12 @@ class PFLocalizationCore : public mrpt::system::COutputLogger
 		 */
 		std::optional<mrpt::poses::CPose3DPDFGaussian> initial_pose;
 
+		std::set<std::string> metric_map_use_only_these_layers;
+
 		mrpt::maps::CMultiMetricMap::Ptr metric_map;  //!< Empty=uninitialized
 		std::optional<mp2p_icp::metric_map_t::Georeferencing> georeferencing;
+
+		// used internally for relocalization only:
 		std::vector<std::string> metric_map_layer_names;
 
 		/** Shows a custom MRPT GUI with the PF and map state
@@ -90,8 +94,7 @@ class PFLocalizationCore : public mrpt::system::COutputLogger
 		/** For SE(2) mode: Uncertainty motion model to use when NO odometry has
 		 * been received. Can be changed at any moment.
 		 */
-		mrpt::obs::CActionRobotMovement2D::TMotionModelOptions
-			motion_model_no_odom_2d;
+		mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_no_odom_2d;
 
 		/** For SE(3) mode: Uncertainty motion model for regular odometry-based
 		 * motion. Can be changed at any moment.
@@ -101,8 +104,7 @@ class PFLocalizationCore : public mrpt::system::COutputLogger
 		/** For SE(3) mode: Uncertainty motion model to use when NO odometry has
 		 * been received. Can be changed at any moment.
 		 */
-		mrpt::obs::CActionRobotMovement3D::TMotionModelOptions
-			motion_model_no_odom_3d;
+		mrpt::obs::CActionRobotMovement3D::TMotionModelOptions motion_model_no_odom_3d;
 
 		/** All the PF parameters: algorithm, number of samples, dynamic
 		 * samples, etc.
@@ -116,8 +118,7 @@ class PFLocalizationCore : public mrpt::system::COutputLogger
 		mrpt::slam::TKLDParams kld_options;
 
 		// likelihood option overrides:
-		std::optional<mrpt::maps::CPointsMap::TLikelihoodOptions>
-			override_likelihood_point_maps;
+		std::optional<mrpt::maps::CPointsMap::TLikelihoodOptions> override_likelihood_point_maps;
 		std::optional<mrpt::maps::COccupancyGridMap2D::TLikelihoodOptions>
 			override_likelihood_gridmaps;
 
@@ -127,23 +128,23 @@ class PFLocalizationCore : public mrpt::system::COutputLogger
 		unsigned int initial_particles_per_m2 = 10;
 
 		/** If true, the particles will be initialized according to the first
-		 *  incomming GNNS observation, once the map has been also received.
+		 *  incomming GNSS observation, once the map has been also received.
 		 *  \note This requires a georeferencied metric_map_t.
 		 */
-		bool initialize_from_gnns = false;
+		bool initialize_from_gnss = false;
 
-		/// If >0, new tentative particles will be generated from GNNS data,
+		/// If >0, new tentative particles will be generated from GNSS data,
 		/// to help re-localizing if using georeferenced maps:
-		uint32_t samples_drawn_from_gnns = 20;
+		uint32_t samples_drawn_from_gnss = 20;
 
-		/// If samples_drawn_from_gnns is enabled, the number of standard
+		/// If samples_drawn_from_gnss is enabled, the number of standard
 		/// deviations ("sigmas") to use as the area in which to draw random
-		/// samples around the GNNS prediction:
-		double gnns_samples_num_sigmas = 6.0;
+		/// samples around the GNSS prediction:
+		double gnss_samples_num_sigmas = 6.0;
 
 		/// The number of standard deviations ("sigmas") to use as the area in
 		/// which to draw random samples around the input initialization pose
-		/// (when NOT using GNNS as input)
+		/// (when NOT using GNSS as input)
 		double relocalize_num_sigmas = 3.0;
 
 		unsigned int relocalization_initial_divisions_xy = 4;
@@ -213,16 +214,14 @@ class PFLocalizationCore : public mrpt::system::COutputLogger
 	 *  \return true on success, false on any error.
 	 */
 	bool set_map_from_simple_map(
-		const std::string& map_config_ini_file,
-		const std::string& simplemap_file);
+		const std::string& map_config_ini_file, const std::string& simplemap_file);
 
 	/** Defines the map to use from a multimetric map, which may contain
 	 * gridmaps, pointclouds, etc.
 	 */
 	void set_map_from_metric_map(
 		const mrpt::maps::CMultiMetricMap::Ptr& metricMap,
-		const std::optional<mp2p_icp::metric_map_t::Georeferencing>&
-			georeferencing = std::nullopt,
+		const std::optional<mp2p_icp::metric_map_t::Georeferencing>& georeferencing = std::nullopt,
 		const std::vector<std::string>& layerNames = {});
 
 	/** Defines the map to use from a metric_map_t map, with optional
@@ -290,10 +289,10 @@ class PFLocalizationCore : public mrpt::system::COutputLogger
 		mrpt::pimpl<Relocalization> pendingRelocalization;
 	};
 
-	mrpt::obs::CObservationGPS::Ptr get_last_gnns_obs() const
+	mrpt::obs::CObservationGPS::Ptr get_last_gnss_obs() const
 	{
 		auto lck = mrpt::lockHelper(pendingObsMtx_);
-		return last_gnns_;
+		return last_gnss_;
 	}
 
    private:
@@ -301,10 +300,9 @@ class PFLocalizationCore : public mrpt::system::COutputLogger
 	std::mutex stateMtx_;
 
 	std::mutex pendingObsMtx_;
-	mrpt::obs::CObservationGPS::Ptr last_gnns_;	 // use mtx: pendingObsMtx_
+	mrpt::obs::CObservationGPS::Ptr last_gnss_;	 // use mtx: pendingObsMtx_
 
-	mrpt::system::CTimeLogger profiler_{
-		true /*enabled*/, "mrpt_pf_localization" /*name*/};
+	mrpt::system::CTimeLogger profiler_{true /*enabled*/, "mrpt_pf_localization" /*name*/};
 
 	mrpt::gui::CDisplayWindow3D::Ptr win3D_;
 
@@ -326,5 +324,5 @@ class PFLocalizationCore : public mrpt::system::COutputLogger
 
 	void internal_fill_state_lastResult();
 
-	std::optional<mrpt::poses::CPose3DPDFGaussian> get_gnns_pose_prediction();
+	std::optional<mrpt::poses::CPose3DPDFGaussian> get_gnss_pose_prediction();
 };
