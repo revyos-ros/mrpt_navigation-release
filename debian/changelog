@@ -1,9 +1,0 @@
-ros-jazzy-mrpt-nav-interfaces (2.0.0-1noble) noble; urgency=high
-
-  * Define map_server services
-  * Add new package mrpt_nav_interfaces with action and msg defintions for navigation
-  * Contributors: Jose Luis Blanco-Claraco
-
- -- Jose Luis Blanco-Claraco <joseluisblancoc@gmail.com>  Mon, 27 May 2024 22:00:00 -0000
-
-
