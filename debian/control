@@ -1,0 +1,13 @@
+Source: ros-humble-mrpt-navigation
+Section: misc
+Priority: optional
+Maintainer: Jose-Luis Blanco-Claraco <jlblanco@ual.es>
+Build-Depends: debhelper (>= 9.0.0), ros-humble-ament-cmake, ros-humble-ament-cmake-lint-cmake, ros-humble-ament-cmake-xmllint, ros-humble-ament-lint-auto, ros-humble-mrpt-map-server, ros-humble-mrpt-nav-interfaces, ros-humble-mrpt-pf-localization, ros-humble-mrpt-pointcloud-pipeline, ros-humble-mrpt-rawlog, ros-humble-mrpt-reactivenav2d, ros-humble-mrpt-tutorials, ros-humble-ros-workspace
+Homepage: https://github.com/mrpt-ros-pkg/mrpt_navigation
+Standards-Version: 3.9.2
+
+Package: ros-humble-mrpt-navigation
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-humble-ament-cmake-lint-cmake, ros-humble-ament-cmake-xmllint, ros-humble-ament-lint-auto, ros-humble-mrpt-map-server, ros-humble-mrpt-nav-interfaces, ros-humble-mrpt-pf-localization, ros-humble-mrpt-pointcloud-pipeline, ros-humble-mrpt-rawlog, ros-humble-mrpt-reactivenav2d, ros-humble-mrpt-tutorials, ros-humble-ros-workspace
+Description: Tools related to the Mobile Robot Programming Toolkit (MRPT).
+ Refer to https://wiki.ros.org/mrpt_navigation for further documentation.
