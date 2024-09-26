@@ -1,82 +1,227 @@
-[![CI Build colcon](https://github.com/mrpt-ros-pkg/mrpt_navigation/actions/workflows/build-ros.yml/badge.svg)](https://github.com/mrpt-ros-pkg/mrpt_navigation/actions/workflows/build-ros.yml)
+# mrpt_reactivenav2d
 
-| Distro | Build dev | Stable sync |
-| --- | --- | --- |
-| ROS 2 Humble (u22.04) | [![Build Status](https://build.ros2.org/job/Hdev__mrpt_navigation__ubuntu_jammy_amd64/badge/icon)](https://build.ros2.org/job/Hdev__mrpt_navigation__ubuntu_jammy_amd64/) | [![Version](https://img.shields.io/ros/v/iron/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
-| ROS 2 Iron (u22.04) | [![Build Status](https://build.ros2.org/job/Idev__mrpt_navigation__ubuntu_jammy_amd64/badge/icon)](https://build.ros2.org/job/Idev__mrpt_navigation__ubuntu_jammy_amd64/) |  [![Version](https://img.shields.io/ros/v/iron/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
-| ROS 2 Jazzy (u24.04) | [![Build Status](https://build.ros2.org/job/Jdev__mrpt_navigation__ubuntu_noble_amd64/badge/icon)](https://build.ros2.org/job/Jdev__mrpt_navigation__ubuntu_noble_amd64/) | [![Version](https://img.shields.io/ros/v/jazzy/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
-| ROS 2 Rolling (u24.04) | [![Build Status](https://build.ros2.org/job/Rdev__mrpt_navigation__ubuntu_noble_amd64/badge/icon)](https://build.ros2.org/job/Rdev__mrpt_navigation__ubuntu_noble_amd64/) | [![Version](https://img.shields.io/ros/v/rolling/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
+## Overview
+This package provides a ROS 2 node for reactive navigation for wheeled robots
+using MRPT navigation algorithms (TP-Space).
 
-<img align="center" src="https://mrpt.github.io/imgs/mrpt_reactivenav_ros_demo_s40.gif">
+## How to cite
 
-mrpt_navigation
-===============
+<details>
+  <summary>Main papers</summary>
 
-This repository provides packages that wrap functionality in the Mobile Robot Programming Toolkit ([MRPT](https://github.com/MRPT/mrpt/)) related to localization and navigation. MRPT SLAM and sensor access are wrapped into [other ROS repositories](https://github.com/mrpt-ros-pkg/).
+  IROS06 ([PDF](https://ingmec.ual.es/~jlblanco/papers/blanco2006tps_IROS.pdf))
+  ```bibtex
+  @INPROCEEDINGS{,
+       author = {Blanco, Jos{\'{e}}-Luis and Gonz{\'{a}}lez-Jim{\'{e}}nez, Javier and Fern{\'{a}}ndez-Madrigal, Juan-Antonio},
+        month = oct,
+        title = {The Trajectory Parameter Space (TP-Space): A New Space Representation for Non-Holonomic Mobile Robot Reactive Navigation},
+        booktitle = {IEEE International Conference on Intelligent Robots and Systems (IROS'06)},
+        year = {2006},
+        location = {Beijing (China)}
+  }
+  ```
 
-The latest **SLAM framework**, whose maps are compatible with this repository for localization, is [MOLA](https://github.com/MOLAorg/).
+</details>
 
+<details>
+  <summary>Other related papers</summary>
 
-Documentation for each package
-----------------------------------
-All packages follow [REP-2003](https://ros.org/reps/rep-2003.html) regarding ROS 2 topic QoS.
+  [IEEE RAM 2023](https://ieeexplore.ieee.org/abstract/document/10355540/)
+  ```bibtex
+  @ARTICLE{xiao2023barn,
+      author = {Xiao, Xuesu and Xu, Zifan and Warnell, Garrett and Stone, Peter and Gebelli Guinjoan, Ferran and T Rodrigues, Romulo and Bruyninckx, Herman and Mandala, Hanjaya and Christmann, Guilherme and Blanco, Jos{\'{e}}-Luis and Somashekara Rai, Shravan},
+       month = {{aug}},
+       title = {Autonomous Ground Navigation in Highly Constrained Spaces: Lessons learned from The 2nd BARN Challenge at ICRA 2023},
+       journal = {IEEE Robotics & Automation Magazine},
+       volume = {30},
+       number = {4},
+       year = {2023},
+       url = {https://ieeexplore.ieee.org/abstract/document/10355540/},
+       doi = {10.1109/MRA.2023.3322920},
+       pages = {91--97}
+  }
+  ```
 
-Related to localization:
-* [mrpt_map_server](mrpt_map_server): A node that loads a ROS standard gridmap or an MRPT or MP2P_ICP map and publishes it to a (set of) topic(s).
-* [mrpt_pf_localization](mrpt_pf_localization): A node for particle filter-based localization of a robot from any kind of metric map (gridmap, points, range-only sensors, ...).
+  IJARS 2015 [PDF](https://ingmec.ual.es/~jlblanco/papers/blanco2015tps_rrt.pdf)
+  ```bibtex
+  @ARTICLE{bellone2015tprrt,
+      author = {Blanco, Jos{\'{e}}-Luis and Bellone, Mauro and Gim{\'{e}}nez-Fern{\'{a}}ndez, Antonio},
+      month = {{{may}}},
+      title = {TP-Space RRT: Kinematic path planning of non-holonomic any-shape vehicles},
+      journal = {International Journal of Advanced Robotic Systems},
+      volume = {12},
+      number = {55},
+      year = {2015},
+      url = {http://www.intechopen.com/journals/international_journal_of_advanced_robotic_systems/tp-space-rrt-ndash-kinematic-path-planning-of-non-holonomic-any-shape-vehicles},
+      doi = {10.5772/60463}
+  }
+  ```
 
-Related to sensor pipelines:
-* [mrpt_pointcloud_pipeline](mrpt_pointcloud_pipeline): A node that maintains a local obstacle map from recent sensor readings, including optional point cloud pipeline filtering or processing. For example,
-  - For 3D LIDARs, to filter by a volume or area, downsample the number of points, etc.
-  - For 2D laser scanners, to keep a memory of obstacles that get out of the sensor field of view.
-
-Related to autonomous navigation:
-* [mrpt_reactivenav2d](mrpt_reactivenav2d): A pure reactive navigator for polygonal robots on 2D worlds.
-* [mrpt_tps_astar_planner](mrpt_tps_astar_planner): A path planner based on PTG trajectories using A* in a SE(2) lattice.
-
-Others:
-* [mrpt_rawlog](mrpt_rawlog): Nodes and CLI tools to convert between MRPT rawlog format and ROS rosbag2.
-* [mrpt_tutorials](mrpt_tutorials): Launch and configuration files for the various examples provided for the other packages.
-* [mrpt_msgs_bridge](mrpt_msgs_bridge): C++ library to convert between custom [mrpt_msgs](https://github.com/mrpt-ros-pkg/mrpt_msgs) messages and native MRPT classes
-* [mrpt_nav_interfaces](mrpt_nav_interfaces): Definition of msgs, srvs, and actions used by the other packages.
-
-
-General documentation
-----------------------------------
-* ROS wiki: http://wiki.ros.org/mrpt_navigation
-* Compiling instructions: http://wiki.ros.org/mrpt_navigation/Tutorials/Installing
-* Usage examples and tutorials: http://wiki.ros.org/mrpt_navigation/Tutorials
-* Branches:
-  * `ros2`: The most recent, active branch for modern ROS 2 distributions.
-  * `ros1`: Intended for ROS 1. No further development will happen there.
-
-Individual package build status
----------------------------------
-
-| Package | ROS 2 Humble <br/> BinBuild |  ROS 2 Iron <br/> BinBuild | ROS 2 Jazzy <br/> BinBuild |  ROS 2 Rolling <br/> BinBuild |
-| --- | --- | --- | --- | --- |
-| mrpt_map_server | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/) |
-| mrpt_msgs_bridge | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/) |
-| mrpt_nav_interfaces | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/) |
-| mrpt_navigation | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/) |
-| mrpt_pf_localization | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/) |
-| mrpt_pointcloud_pipeline | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/) |
-| mrpt_rawlog | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/) |
-| mrpt_reactivenav2d | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/) |
-| mrpt_tps_astar_planner | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/) |
-| mrpt_tutorials | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/) |
+</details>
 
 
-Contributing
-----------------------------------
-* Code formatting: We use clang-format to ensure formatting consistency in the
-  code base. Set up your IDE to automatically use clang-format-11,
-  use `git clang-format-11`, or invoke it manually from the root directory as:
-  
-      find . -iname *.hpp -o -iname *.cpp -o -iname *.h | xargs clang-format-11 -i
+## Configuration
 
-**Contributors**
+The main **parameters** of our approach are:
 
-<a href="https://github.com/mrpt-ros-pkg/mrpt_navigation/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=mrpt-ros-pkg/mrpt_navigation" />
-</a>
+- **Robot shape**: The "2D foot-print" of the robot.
+- **PTGs**: One or more families of trajectories, used to look ahead and plan what is the most interesting next motor command.
+- **Motion decision**: These parameters can be tuned to modify the heuristics that control what motor actions are selected.
+
+## Demos
+
+### Navigation in simulated warehouse
+
+    ros2 launch mrpt_tutorials reactive_nav_demo_with_mvsim.launch.py
+
+to start:
+
+* ``mrpt_reactivenav2d`` for the autonomous reactive navigation (this package),
+* ``mrpt_pointcloud_pipeline`` for generating input obstacles for the navigator from lidar data,
+* ``mvsim`` to simulate a live robot that can be controlled by the navigator.
+
+## Node: mrpt_reactivenav2d_node
+
+### Working rationale
+
+The C++ ROS 2 node comprises XXX
+
+
+### ROS 2 parameters
+
+XXX
+
+### Subscribed topics
+* xxx
+
+### Published topics
+* xxx
+
+* `reactivenav_events` (`std_msgs/String`): One message with a string keyword will be published for each important navigation event. 
+  The list possible message strings are: 
+  * `START`: Start of navigation
+  * `END`: Successful end of navigation command (reach of single goal, or final waypoint of waypoint list).
+  * `WP_REACHED <INDEX> (REACHED|SKIPPED)`: Reached an intermediary waypoint in waypoint list navigation. The waypoint may have been physically reached or just skipped.
+  * `WP_NEW <INDEX>`: Heading towards a new intermediary/final waypoint in waypoint list navigation.
+  * `ERROR`: Error asking sensory data from robot or sending motor commands.
+  * `WAY_SEEMS_BLOCKED`: No progression made towards target for a predefined period of time.
+  * `APPARENT_COLLISION`: Apparent collision event (i.e. there is at least one obstacle point inside the robot shape).
+  * `CANNOT_GET_CLOSER`: Target seems to be blocked by an obstacle.
+
+### Actions
+
+#### NavigateGoal
+
+Can be used to navigate to a single target SE(2) pose.
+
+<details>
+  <summary>Example output</summary>
+
+Example CLI call:
+```bash
+ros2 action send_goal /rnav/navigate_goal mrpt_nav_interfaces/action/NavigateGoal  --feedback \
+"target:
+  header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'map'}
+  pose: {position: {x: 3.0, y: 0.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}
+"
+```
+
+Example output:
+```
+Goal accepted with ID: 38d28cd7ad604e41bcfa7d50162fbd93
+
+Feedback:
+    state:
+  total_waypoints: 1
+  reached_waypoints: 0
+
+Feedback:
+    state:
+  total_waypoints: 1
+  reached_waypoints: 0
+
+[...]
+
+Feedback:
+    state:
+  total_waypoints: 1
+  reached_waypoints: 0
+
+Result:
+    state:
+  navigation_status: 0
+
+Goal finished with status: SUCCEEDED
+```
+</details>
+
+#### NavigateWaypoints
+
+Can be used to navigate to a sequence of waypoints.
+
+<details>
+  <summary>Example output</summary>
+
+Example CLI call:
+```bash
+ros2 action send_goal /rnav/navigate_waypoints mrpt_nav_interfaces/action/NavigateWaypoints  --feedback \
+"waypoints:
+  header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'map'}
+  waypoints:
+    - target: {position: {x: 2.0, y: 0.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}
+      ignore_heading: true
+      allow_skip: false
+      allowed_distance: 0.30
+    - target: {position: {x: 4.0, y: 0.2, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}
+      ignore_heading: true
+      allow_skip: false
+      allowed_distance: 0.30
+"
+```
+
+Example output:
+```
+Goal accepted with ID: f8180e191f0d4f5ca8466c77acbab333
+
+Feedback:
+    state:
+  total_waypoints: 2
+  reached_waypoints: -1
+
+Feedback:
+    state:
+  total_waypoints: 2
+  reached_waypoints: 0
+
+Feedback:
+    state:
+  total_waypoints: 2
+  reached_waypoints: 1
+
+[...]
+
+Feedback:
+    state:
+  total_waypoints: 2
+  reached_waypoints: 1
+
+Result:
+    state:
+  navigation_status: 0
+
+Goal finished with status: SUCCEEDED
+```
+</details>
+
+
+### Template ROS 2 launch files
+
+This package provides [launch/reactivenav.launch.py](launch/reactivenav.launch.py):
+
+    ros2 launch mrpt_reactivenav2d reactivenav.launch.py
+
+which can be used in user projects to launch the MRPT reactive navigation node, by setting these [launch arguments](https://docs.ros.org/en/rolling/Tutorials/Intermediate/Launch/Using-Substitutions.html):
+
+* ``XXX_config_file``: Path to an INI file with...
+
+
