@@ -1,0 +1,12 @@
+Source: ros-humble-mrpt-tutorials
+Section: misc
+Priority: optional
+Maintainer: Jose Luis Blanco-Claraco <joseluisblancoc@gmail.com>
+Build-Depends: debhelper (>= 9.0.0), cmake, ros-humble-ament-cmake, ros-humble-ament-cmake-lint-cmake, ros-humble-ament-cmake-xmllint, ros-humble-ament-lint-auto, ros-humble-ros-workspace
+Homepage: https://github.com/mrpt-ros-pkg/mrpt_navigation
+Standards-Version: 3.9.2
+
+Package: ros-humble-mrpt-tutorials
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-humble-ament-cmake-lint-cmake, ros-humble-ament-cmake-xmllint, ros-humble-ament-lint-auto, ros-humble-mvsim, ros-humble-teleop-twist-keyboard, ros-humble-ros-workspace
+Description: Example files used as tutorials for MRPT ROS packages
