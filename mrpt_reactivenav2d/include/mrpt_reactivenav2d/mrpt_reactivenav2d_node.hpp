@@ -49,8 +49,7 @@ class ReactiveNav2DNode : public rclcpp::Node
 {
    public:
 	/* Ctor*/
-	explicit ReactiveNav2DNode(
-		const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+	explicit ReactiveNav2DNode(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 	/* Dtor*/
 	~ReactiveNav2DNode() {}
 
@@ -59,30 +58,24 @@ class ReactiveNav2DNode : public rclcpp::Node
 	void read_parameters();
 	void navigate_to(const mrpt::math::TPose2D& target);
 	void on_do_navigation();
-	void on_goal_received(
-		const geometry_msgs::msg::PoseStamped::SharedPtr& trg_ptr);
-	void on_local_obstacles(
-		const sensor_msgs::msg::PointCloud2::SharedPtr& obs);
-	void on_set_robot_shape(
-		const geometry_msgs::msg::Polygon::SharedPtr& newShape);
+	void on_goal_received(const geometry_msgs::msg::PoseStamped::SharedPtr& trg_ptr);
+	void on_local_obstacles(const sensor_msgs::msg::PointCloud2::SharedPtr& obs);
+	void on_set_robot_shape(const geometry_msgs::msg::Polygon::SharedPtr& newShape);
 	void on_odometry_received(const nav_msgs::msg::Odometry::SharedPtr& odom);
 	void update_waypoint_sequence(const mrpt_msgs::msg::WaypointSequence& wp);
-	void on_waypoint_seq_received(
-		const mrpt_msgs::msg::WaypointSequence::SharedPtr& wps);
+	void on_waypoint_seq_received(const mrpt_msgs::msg::WaypointSequence::SharedPtr& wps);
 
    private:
 	/** @name ROS pubs/subs
 	 *  @{ */
 	rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subOdometry_;
 	rclcpp::Subscription<mrpt_msgs::msg::WaypointSequence>::SharedPtr subWpSeq_;
-	rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr
-		subNavGoal_;
+	rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr subNavGoal_;
 	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subLocalObs_;
 	rclcpp::Subscription<geometry_msgs::msg::Polygon>::SharedPtr subRobotShape_;
 	rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pubCmdVel_;
 
-	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
-		pubSelectedPtg_;
+	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr pubSelectedPtg_;
 
 	rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pubNavEvents_;
 
@@ -92,6 +85,11 @@ class ReactiveNav2DNode : public rclcpp::Node
 
 	mrpt::system::CTimeLogger profiler_;
 	bool initialized_ = false;	//!< Reactive initialization done?
+
+	std::shared_ptr<rclcpp::ParameterEventHandler> param_subscriber_;
+
+	// Used for single goal commands. For waypoints, the node will use
+	// the distances in the waypoints msg:
 	double targetAllowedDistance_ = 0.40;
 	double navPeriod_ = 0.10;
 
@@ -110,6 +108,7 @@ class ReactiveNav2DNode : public rclcpp::Node
 
 	/// If enabled, no obstacle avoidance will be attempted (!)
 	bool pure_pursuit_mode_ = false;
+	std::shared_ptr<rclcpp::ParameterCallbackHandle> cb_pure_pursuit_mode_;
 
 	std::string pluginFile_ = {};
 	std::string cfgFileReactive_ = "reactive2d_config.ini";
@@ -125,13 +124,12 @@ class ReactiveNav2DNode : public rclcpp::Node
 	std::mutex lastObstaclesMtx_;
 
 	bool waitForTransform(
-		mrpt::poses::CPose3D& des, const std::string& target_frame,
-		const std::string& source_frame, const int timeoutMilliseconds = 50);
+		mrpt::poses::CPose3D& des, const std::string& target_frame, const std::string& source_frame,
+		const int timeoutMilliseconds = 50);
 
 	void publish_last_log_record_to_ros(const mrpt::nav::CLogFileRecord& lr);
 
-	visualization_msgs::msg::MarkerArray log_to_margers(
-		const mrpt::nav::CLogFileRecord& lr);
+	visualization_msgs::msg::MarkerArray log_to_margers(const mrpt::nav::CLogFileRecord& lr);
 
 	void publish_event_message(const std::string& text);
 
@@ -149,16 +147,15 @@ class ReactiveNav2DNode : public rclcpp::Node
 		 */
 		bool getCurrentPoseAndSpeeds(
 			mrpt::math::TPose2D& curPose, mrpt::math::TTwist2D& curVel,
-			mrpt::system::TTimeStamp& timestamp,
-			mrpt::math::TPose2D& curOdometry, std::string& frame_id) override;
+			mrpt::system::TTimeStamp& timestamp, mrpt::math::TPose2D& curOdometry,
+			std::string& frame_id) override;
 
 		/** Change the instantaneous speeds of robot.
 		 *   \param v Linear speed, in meters per second.
 		 *	 \param w Angular speed, in radians per second.
 		 * \return false on any error.
 		 */
-		bool changeSpeeds(
-			const mrpt::kinematics::CVehicleVelCmd& vel_cmd) override;
+		bool changeSpeeds(const mrpt::kinematics::CVehicleVelCmd& vel_cmd) override;
 
 		bool stop(bool isEmergency) override;
 
@@ -174,8 +171,7 @@ class ReactiveNav2DNode : public rclcpp::Node
 		/** Return the current set of obstacle points.
 		 * \return false on any error. */
 		bool senseObstacles(
-			mrpt::maps::CSimplePointsMap& obstacles,
-			mrpt::system::TTimeStamp& timestamp) override;
+			mrpt::maps::CSimplePointsMap& obstacles, mrpt::system::TTimeStamp& timestamp) override;
 
 		mrpt::kinematics::CVehicleVelCmd::Ptr getEmergencyStopCmd() override
 		{
@@ -200,8 +196,7 @@ class ReactiveNav2DNode : public rclcpp::Node
 		 * navigation. reached_nSkipped will be `true` if the waypoint was
 		 * physically reached; `false` if it was actually "skipped".
 		 */
-		void sendWaypointReachedEvent(
-			int waypoint_index, bool reached_nSkipped) override;
+		void sendWaypointReachedEvent(int waypoint_index, bool reached_nSkipped) override;
 
 		/** Callback: Heading towards a new intermediary/final waypoint in
 		 * waypoint list navigation */
@@ -235,15 +230,13 @@ class ReactiveNav2DNode : public rclcpp::Node
 	rclcpp_action::Server<NavigateGoal>::SharedPtr action_server_goal_;
 
 	rclcpp_action::GoalResponse handle_goal(
-		const rclcpp_action::GoalUUID& uuid,
-		std::shared_ptr<const NavigateGoal::Goal> goal);
+		const rclcpp_action::GoalUUID& uuid, std::shared_ptr<const NavigateGoal::Goal> goal);
 
 	rclcpp_action::CancelResponse handle_cancel(
 		const std::shared_ptr<HandleNavigateGoal> goal_handle);
 
 	void handle_accepted(const std::shared_ptr<HandleNavigateGoal> goal_handle);
-	void execute_action_goal(
-		const std::shared_ptr<HandleNavigateGoal> goal_handle);
+	void execute_action_goal(const std::shared_ptr<HandleNavigateGoal> goal_handle);
 
 	std::optional<bool> currentNavEndedSuccessfully_;
 	std::mutex currentNavEndedSuccessfullyMtx_;
@@ -251,23 +244,18 @@ class ReactiveNav2DNode : public rclcpp::Node
 	// ACTION INTERFACE: NavigateWaypoints
 	// --------------------------------------
 	using NavigateWaypoints = mrpt_nav_interfaces::action::NavigateWaypoints;
-	using HandleNavigateWaypoints =
-		rclcpp_action::ServerGoalHandle<NavigateWaypoints>;
+	using HandleNavigateWaypoints = rclcpp_action::ServerGoalHandle<NavigateWaypoints>;
 
-	rclcpp_action::Server<NavigateWaypoints>::SharedPtr
-		action_server_waypoints_;
+	rclcpp_action::Server<NavigateWaypoints>::SharedPtr action_server_waypoints_;
 
 	rclcpp_action::GoalResponse handle_goal_wp(
-		const rclcpp_action::GoalUUID& uuid,
-		std::shared_ptr<const NavigateWaypoints::Goal> goal);
+		const rclcpp_action::GoalUUID& uuid, std::shared_ptr<const NavigateWaypoints::Goal> goal);
 
 	rclcpp_action::CancelResponse handle_cancel_wp(
 		const std::shared_ptr<HandleNavigateWaypoints> goal_handle);
 
-	void handle_accepted_wp(
-		const std::shared_ptr<HandleNavigateWaypoints> goal_handle);
-	void execute_action_wp(
-		const std::shared_ptr<HandleNavigateWaypoints> goal_handle);
+	void handle_accepted_wp(const std::shared_ptr<HandleNavigateWaypoints> goal_handle);
+	void execute_action_wp(const std::shared_ptr<HandleNavigateWaypoints> goal_handle);
 };
 
 }  // namespace mrpt_reactivenav2d
