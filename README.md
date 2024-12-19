@@ -1,131 +1,82 @@
-# mrpt_map_server
+[![CI Build colcon](https://github.com/mrpt-ros-pkg/mrpt_navigation/actions/workflows/build-ros.yml/badge.svg)](https://github.com/mrpt-ros-pkg/mrpt_navigation/actions/workflows/build-ros.yml)
 
-# Table of Contents
-* [Overview](#Overview)
-* [Node: mrpt_map_server](#Node:-mrpt_map_server)
-	* [Working rationale](#Working-rationale)
-	* [ROS Parameters](#ROS-Parameters)
-	* [Subscribed topics](#Subscribed-topics)
-	* [Published topics](#Published-topics)
-	* [Services](#services)
-	* [Template ROS 2 launch files](#Template-ROS-2-launch-files)
-* [Demos](#Demos)
+| Distro | Build dev | Stable sync |
+| --- | --- | --- |
+| ROS 2 Humble (u22.04) | [![Build Status](https://build.ros2.org/job/Hdev__mrpt_navigation__ubuntu_jammy_amd64/badge/icon)](https://build.ros2.org/job/Hdev__mrpt_navigation__ubuntu_jammy_amd64/) | [![Version](https://img.shields.io/ros/v/iron/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
+| ROS 2 Iron (u22.04) | [![Build Status](https://build.ros2.org/job/Idev__mrpt_navigation__ubuntu_jammy_amd64/badge/icon)](https://build.ros2.org/job/Idev__mrpt_navigation__ubuntu_jammy_amd64/) |  [![Version](https://img.shields.io/ros/v/iron/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
+| ROS 2 Jazzy (u24.04) | [![Build Status](https://build.ros2.org/job/Jdev__mrpt_navigation__ubuntu_noble_amd64/badge/icon)](https://build.ros2.org/job/Jdev__mrpt_navigation__ubuntu_noble_amd64/) | [![Version](https://img.shields.io/ros/v/jazzy/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
+| ROS 2 Rolling (u24.04) | [![Build Status](https://build.ros2.org/job/Rdev__mrpt_navigation__ubuntu_noble_amd64/badge/icon)](https://build.ros2.org/job/Rdev__mrpt_navigation__ubuntu_noble_amd64/) | [![Version](https://img.shields.io/ros/v/rolling/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
 
-## Overview
-This package provides a ROS 2 node that publishes a static **map** for other nodes to use it.
-Unlike classic ROS 1 ``map_server``, this node can publish a range of different metric maps, not only occupancy grids.
+<img align="center" src="https://mrpt.github.io/imgs/mrpt_reactivenav_ros_demo_s40.gif">
 
-## Node: mrpt_map_server
+mrpt_navigation
+===============
 
-### Working rationale
-The C++ ROS 2 node loads all parameters at start up, loads the map
-as requested by parameters, and publishes the metric map in the corresponding topics.
-Messages are sent as transient local, so new subscribers can receive them even 
-if they start afterwards.
+This repository provides packages that wrap functionality in the Mobile Robot Programming Toolkit ([MRPT](https://github.com/MRPT/mrpt/)) related to localization and navigation. MRPT SLAM and sensor access are wrapped into [other ROS repositories](https://github.com/mrpt-ros-pkg/).
 
-There are **three formats** in which maps can be read:
-
-1. The **preferred format** is as an [mp2p_icp](https://github.com/MOLAorg/mp2p_icp)'s metric map file (`*.mm`), normally generated
-   via [sm2mm](https://github.com/MOLAorg/mp2p_icp/tree/master/apps/sm2mm) from a [MRPT "simplemap"](https://docs.mrpt.org/reference/latest/class_mrpt_maps_CSimpleMap.html) (``*.simplemap``)
-   that comes from a SLAM session, e.g. using [mola_lidar_odometry](https://docs.mola-slam.org/latest/).
-
-3. As a [ROS standard YAML file](https://wiki.ros.org/map_server). Here, a ``*.yaml`` file specifies the metadata of a 2D occupancy gridmap,
-   which is stored as an accompanying image file. The map will be actually encapsulated into a `metric_map_t` map with layer name `map`.
-
-4. As a [serialized](https://docs.mrpt.org/reference/latest/group_mrpt_serialization_grp.html) MRPT metric map file.
-A ``*.metricmap`` file contains any of the existing 
-[MRPT metric maps](https://docs.mrpt.org/reference/latest/group_mrpt_maps_grp.html)
-(point clouds, grid maps, etc.), which may come from custom applications or other SLAM packages.
-The map will be actually encapsulated into a `metric_map_t` map with layer name `map`.
-
-So, whatever is the map source, this node will internally build a [`metric_map_t`](https://docs.mola-slam.org/latest/mp2p_icp_basics.html)
-with one or more map layers, so it gets published in a uniform way to subscribers.
-
-Refer to example launch files at the end of this file for examples
-of usage of each of these methods.
+The latest **SLAM framework**, whose maps are compatible with this repository for localization, is [MOLA](https://github.com/MOLAorg/).
 
 
-### ROS Parameters
+Documentation for each package
+----------------------------------
+All packages follow [REP-2003](https://ros.org/reps/rep-2003.html) regarding ROS 2 topic QoS.
 
-#### Related to determining where to read the map from
-* (Option 1 above) ``mm_file`` (Default=undefined). Determine the `metric_map_t` file to load, coming from [sm2mm](https://github.com/MOLAorg/mp2p_icp/tree/master/apps/sm2mm) or any other custom user application using `mp2p_icp`.
-* (Option 2 above) ``map_yaml_file`` (Default=undefined): Define this parameter to load a [ROS standard YAML file](https://wiki.ros.org/map_server) gridmap.
-* (Option 3 above) ``mrpt_metricmap_file`` (Default=undefined).
+Related to localization:
+* [mrpt_map_server](mrpt_map_server): A node that loads a ROS standard gridmap or an MRPT or MP2P_ICP map and publishes it to a (set of) topic(s).
+* [mrpt_pf_localization](mrpt_pf_localization): A node for particle filter-based localization of a robot from any kind of metric map (gridmap, points, range-only sensors, ...).
 
-#### Related to ROS published topics:
-* ``frame_id`` (Default=``map``): TF frame.
-* `pub_mm_topic` (Default=`mrpt_map`). Despite the map source, it will be eventually stored as a `mp2p_icp`'s `metric_map_t` (`*.mm`) structure, then each layer will be published using its **layer name** as a **topic name** and with the appropriate type
-(e.g. PointCloud2, OccupancyGrid,...). Also, the whole metric map is published as a generic serialized object to the topic defined by the 
-parameter `pub_mm_topic`.
+Related to sensor pipelines:
+* [mrpt_pointcloud_pipeline](mrpt_pointcloud_pipeline): A node that maintains a local obstacle map from recent sensor readings, including optional point cloud pipeline filtering or processing. For example,
+  - For 3D LIDARs, to filter by a volume or area, downsample the number of points, etc.
+  - For 2D laser scanners, to keep a memory of obstacles that get out of the sensor field of view.
 
-### Subscribed topics
-None.
+Related to autonomous navigation:
+* [mrpt_reactivenav2d](mrpt_reactivenav2d): A pure reactive navigator for polygonal robots on 2D worlds.
+* [mrpt_tps_astar_planner](mrpt_tps_astar_planner): A path planner based on PTG trajectories using A* in a SE(2) lattice.
 
-### Published topics
-* ``${pub_mm_topic}/metric_map`` (Default: ``mrpt_map/metric_map``) (``mrpt_msgs::msg::GenericObject``) (topic name can be changed with parameter `pub_mm_topic`).
-* ``${pub_mm_topic}/geo_ref`` (Default: ``mrpt_map/geo_ref``) (``mrpt_msgs::msg::GenericObject``). An MRPT-serialization of ``mp2p_icp::metric_map_t::Georeferencing`` metadata (topic name can be changed with parameter `pub_mm_topic`).
-* ``${pub_mm_topic}/geo_ref_metadata`` (Default: ``mrpt_map/geo_ref_metadata``)(``mrpt_nav_interfaces::msgs::msg::GeoreferencingMetadata``). A ROS plain message with the contents of ``mp2p_icp::metric_map_t::Georeferencing`` metadata.
-* ``${pub_mm_topic}/<LAYER_NAME>`` (Default: ``mrpt_map/<LAYER_NAME>``) (``mrpt_msgs::msg::GenericObject``) 
-* ``${pub_mm_topic}/<LAYER_NAME>_points`` (``sensor_msgs::msg::PointCloud2``), one per map layer.
-* ``${pub_mm_topic}/<LAYER_NAME>_gridmap`` (``nav_msgs::msg::OccupancyGrid``)
-* ``${pub_mm_topic}/<LAYER_NAME>_gridmap_metadata`` (``nav_msgs::msg::MapMetaData``)
-* (... one per map layer ...)
-
-If using options 2 or 3 above, there will be just one layer named `map`.
-
-### Published tf and geo-referenced maps
-Refer to [the documentation](https://docs.mola-slam.org/latest/geo-referencing.html) within the MOLA project on geo-referencing for a description of the ``utm`` and ``enu`` frames,
-defined by this package if fed with a ``*.mm`` file with geo-referenced metadata.
-
-![mola_mrpt_ros_geo_referenced_utm_frames](https://github.com/user-attachments/assets/28f32aac-2c24-4857-9653-9890350fd90e)
+Others:
+* [mrpt_rawlog](mrpt_rawlog): Nodes and CLI tools to convert between MRPT rawlog format and ROS rosbag2.
+* [mrpt_tutorials](mrpt_tutorials): Launch and configuration files for the various examples provided for the other packages.
+* [mrpt_msgs_bridge](mrpt_msgs_bridge): C++ library to convert between custom [mrpt_msgs](https://github.com/mrpt-ros-pkg/mrpt_msgs) messages and native MRPT classes
+* [mrpt_nav_interfaces](mrpt_nav_interfaces): Definition of msgs, srvs, and actions used by the other packages.
 
 
-### Services
-* ``GetLayers``: Returns the list of map layer names:
+General documentation
+----------------------------------
+* ROS wiki: http://wiki.ros.org/mrpt_navigation
+* Compiling instructions: http://wiki.ros.org/mrpt_navigation/Tutorials/Installing
+* Usage examples and tutorials: http://wiki.ros.org/mrpt_navigation/Tutorials
+* Branches:
+  * `ros2`: The most recent, active branch for modern ROS 2 distributions.
+  * `ros1`: Intended for ROS 1. No further development will happen there.
 
-```bash
-# Example usage:
-ros2 service call /map_server_node/get_layers  mrpt_nav_interfaces/srv/GetLayers
-requester: making request: mrpt_nav_interfaces.srv.GetLayers_Request()
+Individual package build status
+---------------------------------
 
-response:
-mrpt_nav_interfaces.srv.GetLayers_Response(layers=['map'])
-```
-
-* ``GetGridmapLayer``: Can be used to request a given map layer of type gridmap.
-
-```bash
-# Example usage:
-ros2 service call /map_server_node/get_grid_layer mrpt_nav_interfaces/srv/GetGridmapLayer "layer_name:\
- 'map'"
-requester: making request: mrpt_nav_interfaces.srv.GetGridmapLayer_Request(layer_name='map')
-
-response:
-mrpt_nav_interfaces.srv.GetGridmapLayer_Response(valid=True, grid=nav_msgs.msg.OccupancyGrid(...
-```
-
-* ``GetPointmapLayer``: Can be used to request a given map layer of type point cloud.
-
-### Template ROS 2 launch files
-
-This package provides [launch/mrpt_map_server.launch.py](launch/mrpt_map_server.launch.py):
-
-    ros2 launch mrpt_map_server mrpt_map_server.launch.py
-
-which can be used in user projects to launch the MRPT map server node, by setting these [launch arguments](https://docs.ros.org/en/rolling/Tutorials/Intermediate/Launch/Using-Substitutions.html):
+| Package | ROS 2 Humble <br/> BinBuild |  ROS 2 Iron <br/> BinBuild | ROS 2 Jazzy <br/> BinBuild |  ROS 2 Rolling <br/> BinBuild |
+| --- | --- | --- | --- | --- |
+| mrpt_map_server | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/) |
+| mrpt_msgs_bridge | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/) |
+| mrpt_nav_interfaces | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/) |
+| mrpt_navigation | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/) |
+| mrpt_pf_localization | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/) |
+| mrpt_pointcloud_pipeline | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/) |
+| mrpt_rawlog | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/) |
+| mrpt_reactivenav2d | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/) |
+| mrpt_tps_astar_planner | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/) |
+| mrpt_tutorials | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/) |
 
 
-## Demos
+Contributing
+----------------------------------
+* Code formatting: We use clang-format to ensure formatting consistency in the
+  code base. Set up your IDE to automatically use clang-format-11,
+  use `git clang-format-11`, or invoke it manually from the root directory as:
+  
+      find . -iname *.hpp -o -iname *.cpp -o -iname *.h | xargs clang-format-11 -i
 
-Launch a map server from a ROS yaml gridmap ([launch file](../mrpt_tutorials/launch/demo_map_server_gridmap_from_yaml.launch.py)):
+**Contributors**
 
-```bash
-ros2 launch mrpt_tutorials demo_map_server_gridmap_from_yaml.launch.py
-```
-
-Launch a map server from a custom `.mm` map ([launch file](../mrpt_tutorials/launch/demo_map_server_from_mm.launch.py)), 
-which in the launch file is read from the environment variable `MM_FILE`, so it can be used like:
- 
-```bash
-ros2 launch mrpt_tutorials demo_map_server_from_mm.launch.py mm_file:=/path/to/my/map.mm
-```
+<a href="https://github.com/mrpt-ros-pkg/mrpt_navigation/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=mrpt-ros-pkg/mrpt_navigation" />
+</a>
