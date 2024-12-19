@@ -1,0 +1,12 @@
+Source: ros-jazzy-mrpt-rawlog
+Section: misc
+Priority: optional
+Maintainer: Markus Bader <markus.bader@tuwien.ac.at>
+Build-Depends: debhelper (>= 9.0.0), cmake, ros-jazzy-ament-cmake, ros-jazzy-ament-cmake-lint-cmake, ros-jazzy-ament-cmake-xmllint, ros-jazzy-ament-lint-auto, ros-jazzy-cv-bridge, ros-jazzy-mrpt-libros-bridge, ros-jazzy-mrpt-libtclap, ros-jazzy-mrpt-msgs, ros-jazzy-nav-msgs, ros-jazzy-rosbag2-cpp, ros-jazzy-sensor-msgs, ros-jazzy-tf2-geometry-msgs, ros-jazzy-tf2-msgs, ros-jazzy-tf2-ros, ros-jazzy-ros-workspace
+Homepage: https://github.com/mrpt-ros-pkg/mrpt_navigation
+Standards-Version: 3.9.2
+
+Package: ros-jazzy-mrpt-rawlog
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-jazzy-ament-cmake-lint-cmake, ros-jazzy-ament-cmake-xmllint, ros-jazzy-ament-lint-auto, ros-jazzy-cv-bridge, ros-jazzy-mrpt-libros-bridge, ros-jazzy-mrpt-libtclap, ros-jazzy-mrpt-msgs, ros-jazzy-nav-msgs, ros-jazzy-rosbag2-cpp, ros-jazzy-sensor-msgs, ros-jazzy-tf2-geometry-msgs, ros-jazzy-tf2-msgs, ros-jazzy-tf2-ros, ros-jazzy-ros-workspace
+Description: Nodes and programs to record and play MRPT rawlogs or to transform between rosbags and rawlogs.
