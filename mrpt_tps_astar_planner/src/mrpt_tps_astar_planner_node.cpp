@@ -68,6 +68,9 @@
 #include <mrpt/opengl/COpenGLScene.h>
 #include <mrpt/opengl/stock_objects.h>
 
+// version:
+#include <mrpt/version.h>
+
 const char* NODE_NAME = "mrpt_tps_astar_planner_node";
 
 /**
@@ -110,6 +113,7 @@ class TPS_Astar_Planner_Node : public rclcpp::Node
 	/// Publisher for waypoint sequence
 	rclcpp::Publisher<mrpt_msgs::msg::WaypointSequence>::SharedPtr pub_wp_seq_;
 	rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_wp_path_seq_;
+	std::vector<rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr> pub_costmaps_;
 
 	// tf2 buffer and listener
 	std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
@@ -141,6 +145,9 @@ class TPS_Astar_Planner_Node : public rclcpp::Node
 	/// waypoint sequence topic publisher name
 	std::string topic_wp_seq_pub_;
 
+	/// costmaps topic publisher name prefix
+	std::string topic_costmaps_pub_ = "/costmap";
+
 	/// Parameter file for PTGs
 	std::string ptg_ini_file_ = "ptgs.ini";
 
@@ -152,6 +159,11 @@ class TPS_Astar_Planner_Node : public rclcpp::Node
 
 	/// Parameters file for planner
 	std::string planner_params_file_ = "planner-params.yaml";
+
+	float problem_world_bbox_margin_ = 2.0f;
+	bool problem_world_bbox_ignore_obstacles_ = false;
+
+	bool astar_skip_refine_ = false;
 
 	/// Waypoint parameters
 	double mid_waypoints_allowed_distance_ = 0.5;
@@ -462,6 +474,22 @@ void TPS_Astar_Planner_Node::read_parameters()
 		this->get_logger(), "mid_waypoints_allowed_distance: %.03f",
 		mid_waypoints_allowed_distance_);
 
+	this->declare_parameter<float>("problem_world_bbox_margin", problem_world_bbox_margin_);
+	this->get_parameter("problem_world_bbox_margin", problem_world_bbox_margin_);
+	RCLCPP_INFO(this->get_logger(), "problem_world_bbox_margin: %.03f", problem_world_bbox_margin_);
+
+	this->declare_parameter<bool>(
+		"problem_world_bbox_ignore_obstacles", problem_world_bbox_ignore_obstacles_);
+	this->get_parameter(
+		"problem_world_bbox_ignore_obstacles", problem_world_bbox_ignore_obstacles_);
+	RCLCPP_INFO_STREAM(
+		this->get_logger(),
+		"problem_world_bbox_ignore_obstacles: " << problem_world_bbox_ignore_obstacles_);
+
+	this->declare_parameter<bool>("astar_skip_refine", astar_skip_refine_);
+	this->get_parameter("astar_skip_refine", astar_skip_refine_);
+	RCLCPP_INFO_STREAM(this->get_logger(), "astar_skip_refine: " << astar_skip_refine_);
+
 	this->declare_parameter<double>(
 		"final_waypoint_allowed_distance", final_waypoint_allowed_distance_);
 	this->get_parameter("final_waypoint_allowed_distance", final_waypoint_allowed_distance_);
@@ -700,8 +728,11 @@ TPS_Astar_Planner_Node::PlanResult TPS_Astar_Planner_Node::do_path_plan(
 		auto obs = mpp::ObstacleSource::FromStaticPointcloud(e.obstacle_points);
 		pi.obstacles.emplace_back(obs);
 
-		auto bb = obs->obstacles()->boundingBox();
-		bbox = bbox.unionWith(bb);
+		if (!problem_world_bbox_ignore_obstacles_)
+		{
+			auto bb = obs->obstacles()->boundingBox();
+			bbox = bbox.unionWith(bb);
+		}
 
 		obstacleSources++;
 		totalObstaclePoints += e.obstacle_points->size();
@@ -714,7 +745,8 @@ TPS_Astar_Planner_Node::PlanResult TPS_Astar_Planner_Node::do_path_plan(
 	lckObs.unlock();
 
 	{
-		const auto bboxMargin = mrpt::math::TPoint3Df(2.0, 2.0, .0);
+		const auto bboxMargin =
+			mrpt::math::TPoint3Df(problem_world_bbox_margin_, problem_world_bbox_margin_, .0f);
 		const auto ptStart = mrpt::math::TPoint3Df(pi.stateStart.pose.x, pi.stateStart.pose.y, 0);
 		const auto ptGoal = mrpt::math::TPoint3Df(
 			pi.stateGoal.asSE2KinState().pose.x, pi.stateGoal.asSE2KinState().pose.y, 0);
@@ -736,28 +768,52 @@ TPS_Astar_Planner_Node::PlanResult TPS_Astar_Planner_Node::do_path_plan(
 											<< "-" << pi.worldBboxMax.asString());
 
 	// Insert custom progress callback:
-	planner_->progressCallback_ = [](const mpp::ProgressCallbackData& pcd)
+	planner_->progressCallback_ = [this](const mpp::ProgressCallbackData& pcd)
 	{
-		std::cout << "[progressCallback] bestCostFromStart: " << pcd.bestCostFromStart
-				  << " bestCostToGoal: " << pcd.bestCostToGoal
-				  << " bestPathLength: " << pcd.bestPath.size() << std::endl;
+		RCLCPP_INFO_STREAM(
+			this->get_logger(),
+			"[progressCallback] bestCostFromStart: " << pcd.bestCostFromStart
+													 << " bestCostToGoal: " << pcd.bestCostToGoal
+													 << " bestPathLength: " << pcd.bestPath.size());
 	};
 
 	const mpp::PlannerOutput plan = planner_->plan(pi);
 
-	std::cout << "\nDone.\n";
-	std::cout << "Success: " << (plan.success ? "YES" : "NO") << "\n";
-	std::cout << "Plan has " << plan.motionTree.edges_to_children.size() << " overall edges, "
-			  << plan.motionTree.nodes().size() << " nodes\n";
+	RCLCPP_INFO_STREAM(
+		this->get_logger(), "Done.\n"
+								<< "Success: " << (plan.success ? "YES" : "NO") << "\n"
+								<< "Plan has " << plan.motionTree.edges_to_children.size()
+								<< " overall edges, " << plan.motionTree.nodes().size()
+								<< " nodes");
 
 	if (!plan.bestNodeId.has_value())
 	{
 		RCLCPP_ERROR_STREAM(this->get_logger(), "No bestNodeId in plan output.");
-
 		return {};
 	}
 
-	// if (plan.success) { activePlanOutput_ = plan; }
+	// Publish costmaps:
+#if MRPT_VERSION >= 0x020e03  // >=v2.14.3
+	pub_costmaps_.resize(planner_->costEvaluators_.size());
+	for (size_t i = 0; i < planner_->costEvaluators_.size(); i++)
+	{
+		if (!pub_costmaps_[i])
+		{
+			// See: REP-2003: https://ros.org/reps/rep-2003.html
+			const auto mapQoS = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
+			pub_costmaps_[i] = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
+				topic_costmaps_pub_ + mrpt::format("_%zu", i), mapQoS);
+		}
+		const auto& cm = planner_->costEvaluators_.at(i);
+		auto grid = cm->get_visualization_as_grid();
+		nav_msgs::msg::OccupancyGrid costMapMsg;
+		mrpt::ros2bridge::toROS(*grid, costMapMsg, true /*as costmap*/);
+		costMapMsg.header.frame_id = frame_id_map_;
+		costMapMsg.header.stamp = this->now();
+
+		pub_costmaps_[i]->publish(costMapMsg);
+	}
+#endif
 
 	if (!plan.success)
 	{
@@ -767,9 +823,9 @@ TPS_Astar_Planner_Node::PlanResult TPS_Astar_Planner_Node::do_path_plan(
 	// backtrack:
 	auto [plannedPath, pathEdges] = plan.motionTree.backtrack_path(*plan.bestNodeId);
 
-#if 0  // JLBC: disabled to check if this is causing troubles
-mpp::refine_trajectory(plannedPath, pathEdges, planner_input.ptgs);
-#endif
+	// refine trajectory:
+	if (!astar_skip_refine_)
+		mpp::refine_trajectory(plannedPath, pathEdges, plan.originalInput.ptgs);
 
 	// Show plan in a GUI for debugging
 	if (plan.success && gui_mrpt_)
