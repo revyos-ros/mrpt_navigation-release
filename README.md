@@ -1,151 +1,82 @@
-# mrpt_pf_localization
+[![CI Build colcon](https://github.com/mrpt-ros-pkg/mrpt_navigation/actions/workflows/build-ros.yml/badge.svg)](https://github.com/mrpt-ros-pkg/mrpt_navigation/actions/workflows/build-ros.yml)
 
-* [mrpt_pf_localization](#mrpt_pf_localization)
-   * [Overview](#overview)
-   * [Related papers](#related-papers)
-   * [Configuration](#configuration)
-   * [Metric map conceptual model](#metric-map-conceptual-model)
-   * [Demos](#demos)
-      * [2D LIDAR localization with a gridmap](#2d-lidar-localization-with-a-gridmap)
-      * [Range-only (RO) localization with a set of fixed, known radio beacons](#range-only-ro-localization-with-a-set-of-fixed-known-radio-beacons)
-   * [Node: mrpt_pf_localization](#node-mrpt_pf_localization)
-      * [Working rationale](#working-rationale)
-      * [ROS 2 parameters](#ros-2-parameters)
-      * [Subscribed topics](#subscribed-topics)
-      * [Published topics](#published-topics)
-      * [Template ROS 2 launch files](#template-ros-2-launch-files)
+| Distro | Build dev | Stable sync |
+| --- | --- | --- |
+| ROS 2 Humble (u22.04) | [![Build Status](https://build.ros2.org/job/Hdev__mrpt_navigation__ubuntu_jammy_amd64/badge/icon)](https://build.ros2.org/job/Hdev__mrpt_navigation__ubuntu_jammy_amd64/) | [![Version](https://img.shields.io/ros/v/iron/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
+| ROS 2 Iron (u22.04) | [![Build Status](https://build.ros2.org/job/Idev__mrpt_navigation__ubuntu_jammy_amd64/badge/icon)](https://build.ros2.org/job/Idev__mrpt_navigation__ubuntu_jammy_amd64/) |  [![Version](https://img.shields.io/ros/v/iron/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
+| ROS 2 Jazzy (u24.04) | [![Build Status](https://build.ros2.org/job/Jdev__mrpt_navigation__ubuntu_noble_amd64/badge/icon)](https://build.ros2.org/job/Jdev__mrpt_navigation__ubuntu_noble_amd64/) | [![Version](https://img.shields.io/ros/v/jazzy/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
+| ROS 2 Rolling (u24.04) | [![Build Status](https://build.ros2.org/job/Rdev__mrpt_navigation__ubuntu_noble_amd64/badge/icon)](https://build.ros2.org/job/Rdev__mrpt_navigation__ubuntu_noble_amd64/) | [![Version](https://img.shields.io/ros/v/rolling/mrpt_navigation)](https://index.ros.org/search/?term=mrpt_navigation) |
 
-<!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Regenerate with: gh-md-toc README.md -->
+<img align="center" src="https://mrpt.github.io/imgs/mrpt_reactivenav_ros_demo_s40.gif">
 
-## Overview
-This package provides a ROS 2 node for self-localization using 2D or 3D (SE(2) or SE(3))
-particle filter-based algorithms and a number of different metric maps as reference maps
-to which to "compare" sensor observations.
+mrpt_navigation
+===============
 
-In a sense, this package is an equivalent to the classic ROS 1 ``amcl``, but with superpowers :-)
+This repository provides packages that wrap functionality in the Mobile Robot Programming Toolkit ([MRPT](https://github.com/MRPT/mrpt/)) related to localization and navigation. MRPT SLAM and sensor access are wrapped into [other ROS repositories](https://github.com/mrpt-ros-pkg/).
 
-Features:
-
-* A number of [different PF algorithms](https://www.mrpt.org/tutorials/programming/statistics-and-bayes-filtering/particle_filter_algorithms/).
-
-* Different map types: Occupancy grid maps (as images, ROS yaml files, or in MRPT binary format), point clouds, beacon map (for range-only sensors). At present, these combinations are exposed in this node:
-  * Map: **occupancy grid**, Sensor: anyone capable of generating a point cloud. Several occupancy grids, each at a different height, to be used for laser scans at the corresponding robot height.
-  * Map: **beacons** at predefined 3D positions, Sensor: range-only. For Range-Only (RO) Localization.
-  * Map: **point cloud**, Sensor: 2D or 3D Lidars (TO-DO as of Aug 2023).
-  * **GNSS** (GPS) readings, in parallel to any of the above (TO-DO as of Aug 2023).
-
-* Multiple simultaneous sensors: The combinations above can be used together and their probabilistic information 
-automatically **fused together**.
-
-<img src="https://mrpt.github.io/imgs/ros-pf-localization-pioneer.jpg" style="width: 500px; align: center;" />
-
-## Related papers
-* Optimal particle filtering algorithm:
-
-    J.L. Blanco, J. Gonzalez-Jimenez, J.A. Fernandez-Madrigal, "Optimal Filtering for Non-Parametric Observation Models: Applications to Localization and SLAM", The International Journal of Robotics Research (IJRR), vol. 29, no. 14, 2010. ([PDF](https://ingmec.ual.es/~jlblanco/papers/blanco2010ofn_IJRR.pdf))
-
-* Range-Only localization:
-
-    J. Gonzalez-Jimenez, J.L. Blanco, C. Galindo, A. Ortiz-de-Galisteo, J.A. Fernandez-Madrigal, F.A. Moreno, J. Martinez, "Mobile Robot Localization based on Ultra-Wide-Band Ranging: A Particle Filter Approach", Robotics and Autonomous Systems, vol. 57, no. 5, pp. 496--507, 2009. ([PDF](https://ingmec.ual.es/~jlblanco/papers/gonzalez2008mrl.pdf))
-
-## Configuration
-
-The provided algorithms have **parameters** that can be grouped into three conceptual topics:
-
-- **Algorithm**: Parameters affecting the particle filter itself or the adaptive sampling method. These parameters can be set in the main [config YAML file](params/default.config.yaml).
-- **Actions**: The [motion model uncertainty](https://docs.mrpt.org/reference/latest/tutorial-motion-models.html). These parameters are also set in the main [config YAML file](params/default.config.yaml).
-- **Observations**: These parameters are spread in part in the observations themselves (e.g. each lidar/sonar should carry information about how noisy it is), and the metric maps. The latter are key parameters and in MRPT are called **likelihood options** in each available metric map.
-
-## Metric map conceptual model
-
-Metric map **likelihood options** are key for tuning the localization system, as
-they tell how much to "trust" sensor readings, how much to downsample their rays, etc.
-
-When using as input a metric map that comes in MRPT native `mrpt::maps::CMetricMap` format
-(this includes `mp2p_icp`'s metric map `*.mm` files), the map already comes with
-its own set of likelihood parameters, defined at the time of creating the map in
-the source application.
-
-However, this `mrpt_pf_localization` node allows **overriding** the
-likelihood options to ease tuning and adjusting without touching the original map.
-
-When using non MRPT-native map sources (e.g. ROS gridmap yaml files),
-the only way to set these important options is via this overriding mechanism.
-
-Refer to node launch arguments for details.
-
-## Demos
-
-### 2D LIDAR localization with a gridmap and MVSim
-[Demo video](https://mrpt.github.io/videos/pf_localization_demo_2dgrid_mvsim.mp4). Run:
-
-    ros2 launch mrpt_tutorials demo_localization_pf_mvsim_2d_lidar.launch.py
-
-to start:
-
-* ``mrpt_pf_localization`` with the map to be received via a ROS topic,
-* ``mrpt_map_server`` server loading and publishing a gridmap as reference map via an ROS-styled ``map.yaml`` file,
-* ``rviz2`` for visualization,
-* ``mvsim`` to simulate a live robot that can be teleoperated.
+The latest **SLAM framework**, whose maps are compatible with this repository for localization, is [MOLA](https://github.com/MOLAorg/).
 
 
+Documentation for each package
+----------------------------------
+All packages follow [REP-2003](https://ros.org/reps/rep-2003.html) regarding ROS 2 topic QoS.
 
-### Range-only (RO) localization with a set of fixed, known radio beacons
-Run:
+Related to localization:
+* [mrpt_map_server](mrpt_map_server): A node that loads a ROS standard gridmap or an MRPT or MP2P_ICP map and publishes it to a (set of) topic(s).
+* [mrpt_pf_localization](mrpt_pf_localization): A node for particle filter-based localization of a robot from any kind of metric map (gridmap, points, range-only sensors, ...).
 
-    ros2 launch mrpt_localization demo_ro.launch
+Related to sensor pipelines:
+* [mrpt_pointcloud_pipeline](mrpt_pointcloud_pipeline): A node that maintains a local obstacle map from recent sensor readings, including optional point cloud pipeline filtering or processing. For example,
+  - For 3D LIDARs, to filter by a volume or area, downsample the number of points, etc.
+  - For 2D laser scanners, to keep a memory of obstacles that get out of the sensor field of view.
 
-to start:
+Related to autonomous navigation:
+* [mrpt_reactivenav2d](mrpt_reactivenav2d): A pure reactive navigator for polygonal robots on 2D worlds.
+* [mrpt_tps_astar_planner](mrpt_tps_astar_planner): A path planner based on PTG trajectories using A* in a SE(2) lattice.
 
-* a dataset (rawlog format) including RO and odometry observations,
-* the mrpt localization with known beacon locations, and
-* RViz for visualization
-
-
-## Node: mrpt_pf_localization
-
-### Working rationale
-
-The C++ ROS 2 node comprises an internal, independent ``PFLocalizationCore`` C++ class, which implements
-the main functionality. It features an internal finite state machine (FSM) with these states:
-
-* ``UNINITIALIZED``: The filter has been neither initialized nor parameters/map loaded.
-  State after initialization. "Loops" in this state do nothing.
-* ``TO_BE_INITIALIZED``: Once the parameters have been loaded, and a map has been loaded 
-  (or if subscribed to a map topic, the topic data has been received), the ``PFLocalizationCore``
-  is put into this state by the node. Upon next "loop", the particles and data structures will be initialized.
-* ``RUNNING``: Normal state. At each "loop", odometry (if present) is used together with sensors to
-  localize the robot.
+Others:
+* [mrpt_rawlog](mrpt_rawlog): Nodes and CLI tools to convert between MRPT rawlog format and ROS rosbag2.
+* [mrpt_tutorials](mrpt_tutorials): Launch and configuration files for the various examples provided for the other packages.
+* [mrpt_msgs_bridge](mrpt_msgs_bridge): C++ library to convert between custom [mrpt_msgs](https://github.com/mrpt-ros-pkg/mrpt_msgs) messages and native MRPT classes
+* [mrpt_nav_interfaces](mrpt_nav_interfaces): Definition of msgs, srvs, and actions used by the other packages.
 
 
-### ROS 2 parameters
+General documentation
+----------------------------------
+* ROS wiki: http://wiki.ros.org/mrpt_navigation
+* Compiling instructions: http://wiki.ros.org/mrpt_navigation/Tutorials/Installing
+* Usage examples and tutorials: http://wiki.ros.org/mrpt_navigation/Tutorials
+* Branches:
+  * `ros2`: The most recent, active branch for modern ROS 2 distributions.
+  * `ros1`: Intended for ROS 1. No further development will happen there.
 
-There is a core set of parameters to configure the particle filter algorithm itself,
-which is self-documented in the provided template parameters yaml file:
-[params/default.config.yaml](params/default.config.yaml).
-Please, read that file and its comments for details.
+Individual package build status
+---------------------------------
 
-If the ``initial_pose`` parameter is provided, and there is an occupancy gridmap, particles will be distributed
-along free space cells only. Otherwise, they will be distributed in the box that circumscribes the confidence interval
-of mean ±1 sigma of the uncertainty.
-
-
-### Subscribed topics
-* xxx
-
-### Published topics
-* xxx
-
-### Template ROS 2 launch files
-
-This package provides [launch/localization.launch.py](launch/localization.launch.py):
-
-    ros2 launch mrpt_pf_localization localization.launch.py
-
-which can be used in user projects to launch the MRPT PF localization node, by setting these [launch arguments](https://docs.ros.org/en/rolling/Tutorials/Intermediate/Launch/Using-Substitutions.html):
-
-* ``pf_params_file`` (Default: [params/default.config.yaml](params/default.config.yaml)): If defined, overrides the default
-particle filter algorithm.
+| Package | ROS 2 Humble <br/> BinBuild |  ROS 2 Iron <br/> BinBuild | ROS 2 Jazzy <br/> BinBuild |  ROS 2 Rolling <br/> BinBuild |
+| --- | --- | --- | --- | --- |
+| mrpt_map_server | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_map_server__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_map_server__ubuntu_noble_amd64__binary/) |
+| mrpt_msgs_bridge | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_msgs_bridge__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_msgs_bridge__ubuntu_noble_amd64__binary/) |
+| mrpt_nav_interfaces | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_nav_interfaces__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_nav_interfaces__ubuntu_noble_amd64__binary/) |
+| mrpt_navigation | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_navigation__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_navigation__ubuntu_noble_amd64__binary/) |
+| mrpt_pf_localization | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_pf_localization__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_pf_localization__ubuntu_noble_amd64__binary/) |
+| mrpt_pointcloud_pipeline | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_pointcloud_pipeline__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_pointcloud_pipeline__ubuntu_noble_amd64__binary/) |
+| mrpt_rawlog | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_rawlog__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_rawlog__ubuntu_noble_amd64__binary/) |
+| mrpt_reactivenav2d | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_reactivenav2d__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_reactivenav2d__ubuntu_noble_amd64__binary/) |
+| mrpt_tps_astar_planner | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_tps_astar_planner__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_tps_astar_planner__ubuntu_noble_amd64__binary/) |
+| mrpt_tutorials | [![Build Status](https://build.ros2.org/job/Hbin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Hbin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Ibin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/badge/icon)](https://build.ros2.org/job/Ibin_uJ64__mrpt_tutorials__ubuntu_jammy_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Jbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Jbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/) | [![Build Status](https://build.ros2.org/job/Rbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/badge/icon)](https://build.ros2.org/job/Rbin_uN64__mrpt_tutorials__ubuntu_noble_amd64__binary/) |
 
 
+Contributing
+----------------------------------
+* Code formatting: We use clang-format to ensure formatting consistency in the
+  code base. Set up your IDE to automatically use clang-format-11,
+  use `git clang-format-11`, or invoke it manually from the root directory as:
+  
+      find . -iname *.hpp -o -iname *.cpp -o -iname *.h | xargs clang-format-11 -i
+
+**Contributors**
+
+<a href="https://github.com/mrpt-ros-pkg/mrpt_navigation/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=mrpt-ros-pkg/mrpt_navigation" />
+</a>
