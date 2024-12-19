@@ -2,6 +2,9 @@
 Changelog for package mrpt_nav_interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.2.1 (2024-10-12)
+------------------
+
 2.2.0 (2024-09-25)
 ------------------
 * Merge pull request `#149 <https://github.com/mrpt-ros-pkg/mrpt_navigation/issues/149>`_ from mrpt-ros-pkg/feature/utm-coordinates
